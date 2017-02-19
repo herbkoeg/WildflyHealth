@@ -3,6 +3,7 @@ package de.hk.wfh.rs;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import javax.security.auth.Subject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -26,7 +27,8 @@ public class LogfileExtractor {
     @Path("/json")
     @Produces({"application/json"})
     public String getHelloWorldJSON(
-            @QueryParam("requestId") String requestId,
+            @QueryParam("startId") String startid,
+            @QueryParam("endId") String endId,
             @QueryParam("filterJsonList") String filterList,
             @QueryParam("ignoreJsonList") String ignoreList,
             @QueryParam("logfile") String logfile) throws Exception {
@@ -62,11 +64,12 @@ public class LogfileExtractor {
         }
     }
 
-    private String getFileContent(String filename, String pattern) throws IOException {
+     String getFileContent(String filename, String pattern) throws IOException {
         StringBuffer sb = new StringBuffer();
         BufferedReader br = null;
         FileReader fr = null;
-        FileReader fr = null;
+        boolean startIdFound = false;
+        boolean endIdFound = false;
 
         String logDir = System.getProperty("user.dir") + "/../standalone/log/";
 
@@ -74,7 +77,7 @@ public class LogfileExtractor {
 
         String fileNameAbsPath = logDir + filename;
 
-        System.out.println(fileNameAbsPath);
+//        System.out.println(fileNameAbsPath);
 
         fr = new FileReader(fileNameAbsPath);
         File file = new File(filename);
@@ -96,4 +99,21 @@ public class LogfileExtractor {
         return sb.toString();
     }
 
+    LineAttributes createLineAttributes(String filterJsonList, String ignoreJsonList, String startId, String endId) throws IOException {
+        LineAttributes lineAttributes = new LineAttributes();
+        ObjectMapper mapper = new ObjectMapper();
+        lineAttributes.setFilterList(mapper.readValue(filterJsonList, List.class));
+        lineAttributes.setIngoreList(mapper.readValue(ignoreJsonList, List.class));
+        lineAttributes.setEndId(endId);
+        lineAttributes.setStartId(startId);
+
+        return lineAttributes;
+    }
+
+    String add(List<String> ignoreList, List<String> filterList, String line) {
+
+
+
+        return null;
+    }
 }
