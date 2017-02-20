@@ -24,7 +24,7 @@ public class LogfileExtractorTest {
     }
 
     @Test
-    public void createLineAttributes() throws Exception {
+    public void createFilterContext() throws Exception {
 
 
         FilterContext lineAttributes = cut.createFilterContext(getJsonStringList("bla", "fasl"), getJsonStringList("bli", "blub"), "anfang", "ende");

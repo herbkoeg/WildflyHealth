@@ -35,11 +35,13 @@ public class LogfileExtractor {
 //   http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log
 //   http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&pattern=org.jboss
 
+//   http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=123&endId=456&filterJsonList=[bla, fasl]&ignoreJsonList=[paul, herbert]
 
         //   String baseDir = System.getProperty("user.dir");
 //        see  http://stackoverflow.com/questions/2602043/rest-api-best-practice-how-to-accept-list-of-parameter-values-as-input
 
-        String retVal = getFilteredContent(logfile,createFilterContext(filterList,ignoreList,startId,endId));
+        FilterContext filterContext = createFilterContext(filterList, ignoreList, startId, endId);
+        String retVal = getFilteredContent(logfile, filterContext);
 
 //        writeSomeLog();
 
@@ -78,6 +80,7 @@ public class LogfileExtractor {
     }
 
     boolean containsPattern(String line, List<String> patternList) {
+        if(patternList == null) return false;
         for (String pattern:patternList) {
             if(line.contains(pattern)) {
                 return true;
