@@ -2,7 +2,7 @@ package de.hk.wfh.rs;
 
 import java.util.List;
 
-public class LineAttributes {
+public class FilterContext {
     private List<String> filterList;
     private List<String> ingoreList;
     private String startId;

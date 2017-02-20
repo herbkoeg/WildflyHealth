@@ -1,34 +1,60 @@
 package de.hk.wfh.rs;
 
-import static org.junit.jupiter.api.Assertions.*;
+//import junit.framework.Assert;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * Created by palmherby on 19.02.17.
  */
-class LogfileExtractorTest {
-    @org.junit.jupiter.api.Test
-    void createLineAttributes1() {
+public class LogfileExtractorTest {
+    private LogfileExtractor cut ;
+
+
+    @Before
+    public void setUp() throws Exception {
+        cut = new LogfileExtractor();
+    }
+
+    @Test
+    public void createLineAttributes() throws Exception {
+
+
+        FilterContext lineAttributes = cut.createFilterContext(getJsonStringList("bla", "fasl"), getJsonStringList("bli", "blub"), "anfang", "ende");
+
+        Assert.assertEquals("ende",lineAttributes.getEndId());
+        Assert.assertEquals("anfang",lineAttributes.getStartId());
+
+        // hamcrest
+//        Assert.assertEquals("[bla, fasl]",lineAttributes.getFilterList());
+//        Assert.assertThat(listUnderTest,
+//                IsIterableContainingInOrder.contains(expectedList.toArray()));
+
 
     }
 
-    @org.junit.jupiter.api.Test
-    void add1() {
+    @Test
+    public void add() throws Exception {
 
     }
 
-    @org.junit.jupiter.api.BeforeEach
-    void setUp() {
+    private String getJsonStringList(String value1, String value2) throws IOException {
+        List<String> myStringList = new ArrayList<>();
 
-    }
+        myStringList.add(value1);
+        myStringList.add(value2);
 
-    @org.junit.jupiter.api.Test
-    void createLineAttributes() {
+        ObjectMapper mapper = new ObjectMapper();
 
-    }
-
-    @org.junit.jupiter.api.Test
-    void add() {
-
+        SomePojo somePojo = new SomePojo();
+        return mapper.writeValueAsString(myStringList);
     }
 
 

@@ -3,7 +3,6 @@ package de.hk.wfh.rs;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import javax.security.auth.Subject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -27,30 +26,22 @@ public class LogfileExtractor {
     @Path("/json")
     @Produces({"application/json"})
     public String getHelloWorldJSON(
-            @QueryParam("startId") String startid,
+            @QueryParam("startId") String startId,
             @QueryParam("endId") String endId,
             @QueryParam("filterJsonList") String filterList,
             @QueryParam("ignoreJsonList") String ignoreList,
             @QueryParam("logfile") String logfile) throws Exception {
 //   http://localhost:8080/wildflyhealth/rest/json
 //   http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log
+//   http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&pattern=org.jboss
+
 
         //   String baseDir = System.getProperty("user.dir");
 //        see  http://stackoverflow.com/questions/2602043/rest-api-best-practice-how-to-accept-list-of-parameter-values-as-input
 
-        String retVal = getFileContent(logfile,filterList);
-
-//        System.out.println("ignoreList: " + ignoreList.get(0));
+        String retVal = getFilteredContent(logfile,createFilterContext(filterList,ignoreList,startId,endId));
 
 //        writeSomeLog();
-
-        ObjectMapper mapper = new ObjectMapper();
-        List<String> myStringList = new ArrayList<>();
-        myStringList.add("herbert");
-        myStringList.add("koegi");
-
-        SomePojo somePojo = new SomePojo();
-        System.out.println(mapper.writeValueAsString(myStringList));
 
         // ["herbert","koegi"]
 
@@ -64,7 +55,7 @@ public class LogfileExtractor {
         }
     }
 
-     String getFileContent(String filename, String pattern) throws IOException {
+     String getFilteredContent(String filename, FilterContext filterContext) throws IOException {
         StringBuffer sb = new StringBuffer();
         BufferedReader br = null;
         FileReader fr = null;
@@ -72,35 +63,33 @@ public class LogfileExtractor {
         boolean endIdFound = false;
 
         String logDir = System.getProperty("user.dir") + "/../standalone/log/";
-
-//        http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&pattern=org.jboss
-
         String fileNameAbsPath = logDir + filename;
-
-//        System.out.println(fileNameAbsPath);
 
         fr = new FileReader(fileNameAbsPath);
         File file = new File(filename);
-        System.err.println("filesize: " + file.length());
 
         String sCurrentLine;
         br = new BufferedReader(new FileReader(fileNameAbsPath));
 
         while ((sCurrentLine = br.readLine()) != null) {
-            if(pattern != null) {
-                if (sCurrentLine.contains(pattern)) {
-                    sb.append(sCurrentLine).append("\n");
-                }
-            }
-            else {
-                sb.append(sCurrentLine).append("\n");
-            }
+            sb.append(add(filterContext,sCurrentLine));
         }
         return sb.toString();
     }
 
-    LineAttributes createLineAttributes(String filterJsonList, String ignoreJsonList, String startId, String endId) throws IOException {
-        LineAttributes lineAttributes = new LineAttributes();
+    boolean containsPattern(String line, List<String> patternList) {
+        for (String pattern:patternList) {
+            if(line.contains(pattern)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    FilterContext createFilterContext(String filterJsonList, String ignoreJsonList, String startId, String endId)
+            throws IOException {
+        FilterContext lineAttributes = new FilterContext();
         ObjectMapper mapper = new ObjectMapper();
         lineAttributes.setFilterList(mapper.readValue(filterJsonList, List.class));
         lineAttributes.setIngoreList(mapper.readValue(ignoreJsonList, List.class));
@@ -110,10 +99,16 @@ public class LogfileExtractor {
         return lineAttributes;
     }
 
-    String add(List<String> ignoreList, List<String> filterList, String line) {
+    String add(FilterContext filterContext, String line) {
+        boolean containsFilter = containsPattern(line, filterContext.getFilterList());
+        boolean containsIgnore = containsPattern(line, filterContext.getIngoreList());
 
-
-
-        return null;
+        if( (containsFilter && containsIgnore) || (!containsFilter && !containsIgnore)) {
+            return ("<- ignore-filter conflict -> " + line + "\n");
+        } else if (containsFilter && !containsIgnore) {
+            return line + "\n";
+        }
+        //(!containsFilter && containsIgnore)
+        return "\n";
     }
 }
