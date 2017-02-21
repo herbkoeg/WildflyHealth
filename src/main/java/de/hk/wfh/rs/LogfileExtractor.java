@@ -11,7 +11,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Path("/herbert/")
@@ -39,15 +38,18 @@ public class LogfileExtractor {
 
         //   String baseDir = System.getProperty("user.dir");
 //        see  http://stackoverflow.com/questions/2602043/rest-api-best-practice-how-to-accept-list-of-parameter-values-as-input
-
-        FilterContext filterContext = createFilterContext(filterList, ignoreList, startId, endId);
-        String retVal = getFilteredContent(logfile, filterContext);
-
+        String retVal ="";
+        try {
+            FilterContext filterContext = createFilterContext(filterList, ignoreList, startId, endId);
+            return getFilteredContent(logfile, filterContext);
+        } catch (IllegalArgumentException ex) {
+            return ex.getMessage();
+        }
 //        writeSomeLog();
 
         // ["herbert","koegi"]
 
-        return retVal;
+//        return retVal;
     }
 
     private void writeSomeLog() {
@@ -91,20 +93,28 @@ public class LogfileExtractor {
 
 
     FilterContext createFilterContext(String filterJsonList, String ignoreJsonList, String startId, String endId)
-            throws IOException {
-        FilterContext lineAttributes = new FilterContext();
+            throws IOException,IllegalArgumentException {
+        FilterContext filterContext = new FilterContext();
         ObjectMapper mapper = new ObjectMapper();
-        lineAttributes.setFilterList(mapper.readValue(filterJsonList, List.class));
-        lineAttributes.setIngoreList(mapper.readValue(ignoreJsonList, List.class));
-        lineAttributes.setEndId(endId);
-        lineAttributes.setStartId(startId);
+        if(filterJsonList != null) {
+            filterContext.setFilterList(mapper.readValue(filterJsonList, List.class));
+        }
+        if(ignoreJsonList != null) {
+            filterContext.setIgnoreList(mapper.readValue(ignoreJsonList, List.class));
+        }
+        filterContext.setEndId(endId);
+        filterContext.setStartId(startId);
 
-        return lineAttributes;
+        if(filterContext.getFilterList().size() > 0 || filterContext.getIgnoreList().size() >0) {
+            throw new IllegalArgumentException("Filter and Ignore Parameter not possible");
+        }
+
+        return filterContext;
     }
 
     String add(FilterContext filterContext, String line) {
         boolean containsFilter = containsPattern(line, filterContext.getFilterList());
-        boolean containsIgnore = containsPattern(line, filterContext.getIngoreList());
+        boolean containsIgnore = containsPattern(line, filterContext.getIgnoreList());
 
         if( (containsFilter && containsIgnore) || (!containsFilter && !containsIgnore)) {
             return ("<- ignore-filter conflict -> " + line + "\n");

@@ -4,6 +4,7 @@ package de.hk.wfh.rs;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -23,6 +24,7 @@ public class LogfileExtractorTest {
         cut = new LogfileExtractor();
     }
 
+    @Ignore
     @Test
     public void createFilterContext() throws Exception {
 
@@ -31,6 +33,9 @@ public class LogfileExtractorTest {
 
         Assert.assertEquals("ende",lineAttributes.getEndId());
         Assert.assertEquals("anfang",lineAttributes.getStartId());
+
+        Assert.assertEquals(2,lineAttributes.getFilterList().size());
+        Assert.assertEquals(2,lineAttributes.getIgnoreList().size());
 
         // hamcrest
 //        Assert.assertEquals("[bla, fasl]",lineAttributes.getFilterList());

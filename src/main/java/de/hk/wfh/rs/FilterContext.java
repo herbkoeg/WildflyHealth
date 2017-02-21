@@ -1,27 +1,33 @@
 package de.hk.wfh.rs;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FilterContext {
     private List<String> filterList;
-    private List<String> ingoreList;
+    private List<String> ignoreList;
     private String startId;
     private String endId;
 
     public List<String> getFilterList() {
-        return filterList;
+        if(filterList != null)
+            return filterList;
+        return new ArrayList<String>();
     }
 
     public void setFilterList(List<String> filterList) {
         this.filterList = filterList;
     }
 
-    public List<String> getIngoreList() {
-        return ingoreList;
+    public List<String> getIgnoreList() {
+
+        if(ignoreList != null)
+            return ignoreList;
+        return new ArrayList<String>();
     }
 
-    public void setIngoreList(List<String> ingoreList) {
-        this.ingoreList = ingoreList;
+    public void setIgnoreList(List<String> ignoreList) {
+        this.ignoreList = ignoreList;
     }
 
     public String getStartId() {
