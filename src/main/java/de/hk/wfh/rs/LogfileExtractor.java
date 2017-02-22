@@ -21,8 +21,6 @@ public class LogfileExtractor {
         logger = Logger.getLogger("REQUESTID");
     }
 
-    //  http://stackoverflow.com/questions/2602043/rest-api-best-practice-how-to-accept-list-of-parameter-values-as-input
-
     @GET
     @Path("/json")
     @Produces({"application/json"})
@@ -32,35 +30,25 @@ public class LogfileExtractor {
             @QueryParam("filterJsonList") String filterList,
             @QueryParam("ignoreJsonList") String ignoreList,
             @QueryParam("logfile") String logfile) throws Exception {
-//   http://localhost:8080/wildflyhealth/rest/json
-//   http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log
-//   http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&pattern=org.jboss
-// http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=123&endId=456&ignoreJsonList=["bla","fasl"]
 
-        String retVal ="";
+        // http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=123&endId=456&ignoreJsonList=["bla","fasl"]
+        // http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=123&endId=456&filterJsonList=["Pool"]&startId=06:41:20,457&endId=06:41:22
+        // http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=123&endId=456&filterJsonList=["Unregistered"]&startId=06:41:20,457&endId=06:41:22
         try {
-
             FilterContext filterContext = createFilterContext(filterList, ignoreList, startId, endId);
             return getFilteredContent(logfile, filterContext);
-//            return  filterList+"\n\n";
         } catch (IllegalArgumentException ex) {
             return ex.getMessage();
         }
-//        writeSomeLog();
-
-        // ["herbert","koegi"]
-
-//        return retVal;
     }
 
     private void writeSomeLog() {
-
         for (int i = 0; i < 10; i++) {
             logger.info("hallo " + i);
         }
     }
 
-     String getFilteredContent(String filename, FilterContext filterContext) throws IOException {
+    String getFilteredContent(String filename, FilterContext filterContext) throws IOException {
         StringBuffer sb = new StringBuffer();
         BufferedReader br = null;
         FileReader fr = null;
@@ -77,36 +65,44 @@ public class LogfileExtractor {
         br = new BufferedReader(new FileReader(fileNameAbsPath));
 
         while ((sCurrentLine = br.readLine()) != null) {
-            sb.append(add(filterContext,sCurrentLine));
+            if (sCurrentLine.contains(filterContext.getStartId())) {
+                startIdFound = true;
+            }
+            if (sCurrentLine.contains(filterContext.getEndId())) {
+                endIdFound = true;
+            }
+            sb.append(add(filterContext, sCurrentLine));
+            if (startIdFound && endIdFound) {
+                break;
+            }
         }
         return sb.toString();
     }
 
     boolean containsPattern(String line, List<String> patternList) {
-        if(patternList == null) return false;
-        for (String pattern:patternList) {
-            if(line.contains(pattern)) {
+        if (patternList == null) return false;
+        for (String pattern : patternList) {
+            if (line.contains(pattern)) {
                 return true;
             }
         }
         return false;
     }
 
-
     FilterContext createFilterContext(String filterJsonList, String ignoreJsonList, String startId, String endId)
-            throws IOException,IllegalArgumentException {
+            throws IOException, IllegalArgumentException {
         FilterContext filterContext = new FilterContext();
         ObjectMapper mapper = new ObjectMapper();
-        if(filterJsonList != null) {
+        if (filterJsonList != null) {
             filterContext.setFilterList(mapper.readValue(filterJsonList, List.class));
         }
-        if(ignoreJsonList != null) {
+        if (ignoreJsonList != null) {
             filterContext.setIgnoreList(mapper.readValue(ignoreJsonList, List.class));
         }
         filterContext.setEndId(endId);
         filterContext.setStartId(startId);
 
-        if(filterContext.getFilterList().size() > 0 && filterContext.getIgnoreList().size() >0) {
+        if (filterContext.getFilterList().size() > 0 && filterContext.getIgnoreList().size() > 0) {
             throw new IllegalArgumentException("Filter and Ignore Parameter not possible");
         }
 
@@ -117,12 +113,16 @@ public class LogfileExtractor {
         boolean containsFilter = containsPattern(line, filterContext.getFilterList());
         boolean containsIgnore = containsPattern(line, filterContext.getIgnoreList());
 
-        if( (containsFilter && containsIgnore)) {
-            return ("<- ignore-filter conflict -> " + line + "\n");
-        } else if (containsFilter && !containsIgnore) {
-            return line + "\n";
+        if (filterContext.getFilterList().size() > 0) {
+            if (containsFilter) {
+                return line + "\n";
+            }
         }
-        //(!containsFilter && containsIgnore)
-        return "\n";
+        if (filterContext.getIgnoreList().size() > 0) {
+            if (!containsIgnore) {
+                return line + "\n";
+            }
+        }
+        return "";
     }
 }
