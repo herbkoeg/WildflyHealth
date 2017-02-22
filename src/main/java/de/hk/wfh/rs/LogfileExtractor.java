@@ -31,8 +31,8 @@ public class LogfileExtractor {
             @QueryParam("ignoreJsonList") String ignoreList,
             @QueryParam("logfile") String logfile) throws Exception {
 
-        // http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=123&endId=456&filterJsonList=["Unregistered"]&startId=06:41:20,457&endId=06:41:22
-        // http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=06:41:20,457&endId=06:41:22
+        // http://localhost:8080/wildflyhealth/?logfile=server.log&startId=123&endId=456&filterJsonList=["Unregistered"]&startId=06:41:20,457&endId=06:41:22
+        // http://localhost:8080/wildflyhealth/?logfile=server.log&startId=06:41:20,457&endId=06:41:22
         // http://localhost:8080/wildflyhealth/?logfile=server.log&startId=06:41:20,457&endId=06:41:22&filterJsonList=["Unregistered"]
         try {
             FilterContext filterContext = createFilterContext(filterList, ignoreList, startId, endId);
