@@ -21,6 +21,8 @@ public class LogfileExtractor {
         logger = Logger.getLogger("REQUESTID");
     }
 
+    //  http://stackoverflow.com/questions/2602043/rest-api-best-practice-how-to-accept-list-of-parameter-values-as-input
+
     @GET
     @Path("/json")
     @Produces({"application/json"})
@@ -33,15 +35,14 @@ public class LogfileExtractor {
 //   http://localhost:8080/wildflyhealth/rest/json
 //   http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log
 //   http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&pattern=org.jboss
+// http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=123&endId=456&ignoreJsonList=["bla","fasl"]
 
-//   http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=123&endId=456&filterJsonList=[bla, fasl]&ignoreJsonList=[paul, herbert]
-
-        //   String baseDir = System.getProperty("user.dir");
-//        see  http://stackoverflow.com/questions/2602043/rest-api-best-practice-how-to-accept-list-of-parameter-values-as-input
         String retVal ="";
         try {
+
             FilterContext filterContext = createFilterContext(filterList, ignoreList, startId, endId);
             return getFilteredContent(logfile, filterContext);
+//            return  filterList+"\n\n";
         } catch (IllegalArgumentException ex) {
             return ex.getMessage();
         }
@@ -105,7 +106,7 @@ public class LogfileExtractor {
         filterContext.setEndId(endId);
         filterContext.setStartId(startId);
 
-        if(filterContext.getFilterList().size() > 0 || filterContext.getIgnoreList().size() >0) {
+        if(filterContext.getFilterList().size() > 0 && filterContext.getIgnoreList().size() >0) {
             throw new IllegalArgumentException("Filter and Ignore Parameter not possible");
         }
 
@@ -116,7 +117,7 @@ public class LogfileExtractor {
         boolean containsFilter = containsPattern(line, filterContext.getFilterList());
         boolean containsIgnore = containsPattern(line, filterContext.getIgnoreList());
 
-        if( (containsFilter && containsIgnore) || (!containsFilter && !containsIgnore)) {
+        if( (containsFilter && containsIgnore)) {
             return ("<- ignore-filter conflict -> " + line + "\n");
         } else if (containsFilter && !containsIgnore) {
             return line + "\n";
