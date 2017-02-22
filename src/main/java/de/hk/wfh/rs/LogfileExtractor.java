@@ -31,9 +31,10 @@ public class LogfileExtractor {
             @QueryParam("ignoreJsonList") String ignoreList,
             @QueryParam("logfile") String logfile) throws Exception {
 
-        // http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=123&endId=456&ignoreJsonList=["bla","fasl"]
-        // http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=123&endId=456&filterJsonList=["Pool"]&startId=06:41:20,457&endId=06:41:22
         // http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=123&endId=456&filterJsonList=["Unregistered"]&startId=06:41:20,457&endId=06:41:22
+        // http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=06:41:20,457&endId=06:41:22
+        // http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=06:41:20,457&endId=06:41:22&filterJsonList=["Unregistered"]
+
         try {
             FilterContext filterContext = createFilterContext(filterList, ignoreList, startId, endId);
             return getFilteredContent(logfile, filterContext);
@@ -113,12 +114,22 @@ public class LogfileExtractor {
         boolean containsFilter = containsPattern(line, filterContext.getFilterList());
         boolean containsIgnore = containsPattern(line, filterContext.getIgnoreList());
 
+        if ( noFilterSet(filterContext)) {
+            return line + "\n";
+        }
+
         if ( (filterContext.getFilterList().size() > 0) && containsFilter) {
                 return line + "\n";
         }
-        if ( (filterContext.getIgnoreList().size() > 0) && !containsFilter) {
+        if ( (filterContext.getIgnoreList().size() > 0) && !containsIgnore) {
                 return line + "\n";
         }
+
         return "";
+    }
+
+    boolean noFilterSet(FilterContext filterContext){
+        return filterContext.getFilterList().size() == 0 &&
+                filterContext.getIgnoreList().size() == 0;
     }
 }
