@@ -13,7 +13,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
-@Path("/herbert/")
+@Path("/")
 public class LogfileExtractor {
     private Logger logger;
 
@@ -22,7 +22,7 @@ public class LogfileExtractor {
     }
 
     @GET
-    @Path("/json")
+    @Path("/")
     @Produces({"application/json"})
     public String getHelloWorldJSON(
             @QueryParam("startId") String startId,
@@ -33,8 +33,7 @@ public class LogfileExtractor {
 
         // http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=123&endId=456&filterJsonList=["Unregistered"]&startId=06:41:20,457&endId=06:41:22
         // http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=06:41:20,457&endId=06:41:22
-        // http://localhost:8080/wildflyhealth/rest/herbert/json?logfile=server.log&startId=06:41:20,457&endId=06:41:22&filterJsonList=["Unregistered"]
-
+        // http://localhost:8080/wildflyhealth/?logfile=server.log&startId=06:41:20,457&endId=06:41:22&filterJsonList=["Unregistered"]
         try {
             FilterContext filterContext = createFilterContext(filterList, ignoreList, startId, endId);
             return getFilteredContent(logfile, filterContext);
