@@ -113,15 +113,11 @@ public class LogfileExtractor {
         boolean containsFilter = containsPattern(line, filterContext.getFilterList());
         boolean containsIgnore = containsPattern(line, filterContext.getIgnoreList());
 
-        if (filterContext.getFilterList().size() > 0) {
-            if (containsFilter) {
+        if ( (filterContext.getFilterList().size() > 0) && containsFilter) {
                 return line + "\n";
-            }
         }
-        if (filterContext.getIgnoreList().size() > 0) {
-            if (!containsIgnore) {
+        if ( (filterContext.getIgnoreList().size() > 0) && !containsFilter) {
                 return line + "\n";
-            }
         }
         return "";
     }
