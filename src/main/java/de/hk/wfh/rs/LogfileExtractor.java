@@ -24,7 +24,7 @@ public class LogfileExtractor {
     @GET
     @Path("/")
     @Produces({"application/json"})
-    public String getHelloWorldJSON(
+    public String getFilteredFile(
             @QueryParam("startId") String startId,
             @QueryParam("endId") String endId,
             @QueryParam("filterJsonList") String filterList,
