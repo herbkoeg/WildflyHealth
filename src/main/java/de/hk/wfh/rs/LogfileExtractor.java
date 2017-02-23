@@ -73,7 +73,9 @@ public class LogfileExtractor {
             if (sCurrentLine.contains(filterContext.getEndId())) {
                 endIdFound = true;
             }
-            sb.append(add(filterContext, sCurrentLine));
+            if(startIdFound) {
+                sb.append(add(filterContext, sCurrentLine));
+            }
             if (startIdFound && endIdFound) {
                 break;
             }
