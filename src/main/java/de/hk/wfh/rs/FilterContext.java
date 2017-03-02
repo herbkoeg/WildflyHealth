@@ -8,6 +8,7 @@ public class FilterContext {
     private List<String> ignoreList;
     private String startId;
     private String endId;
+    private String generated;
 
     public List<String> getFilterList() {
         if(filterList != null)
@@ -44,5 +45,15 @@ public class FilterContext {
 
     public void setEndId(String endId) {
         this.endId = endId;
+    }
+
+    @Override
+    public String toString() {
+        return "FilterContext{" +
+                "filterList=" + filterList +
+                ", ignoreList=" + ignoreList +
+                ", startId='" + startId + '\'' +
+                ", endId='" + endId + '\'' +
+                '}';
     }
 }
