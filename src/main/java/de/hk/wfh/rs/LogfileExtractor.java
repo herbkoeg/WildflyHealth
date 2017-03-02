@@ -21,6 +21,7 @@ public class LogfileExtractor {
         logger = Logger.getLogger("REQUESTID");
     }
 
+
     @GET
     @Path("/")
     @Produces({"application/json"})
@@ -29,10 +30,13 @@ public class LogfileExtractor {
             @QueryParam("endId") String endId,
             @QueryParam("filterJsonList") String filterList,
             @QueryParam("ignoreJsonList") String ignoreList,
-            @QueryParam("logfile") String logfile) throws Exception {
+            @QueryParam("logfile") String logfile)
+            throws Exception {
 /**
  * Examples:
-    http://localhost:8080/wildflyhealth/?logfile=server.log&startId=123&endId=456&filterJsonList=["Unregistered"]&startId=06:41:20,457&endId=06:41:22
+ *
+       http://localhost:8080/wildflyhealth/?rolle=VN&vnr=70123456&tarif=RT1]
+ http://localhost:8080/wildflyhealth/?logfile=server.log&startId=123&endId=456&filterJsonList=["Unregistered"]&startId=06:41:20,457&endId=06:41:22
     http://localhost:8080/wildflyhealth/?logfile=server.log&startId=06:41:20,457&endId=06:41:22
     http://localhost:8080/wildflyhealth/?logfile=server.log&startId=06:41:20,457&endId=06:41:22&filterJsonList=["Unregistered"]
 **/
@@ -40,7 +44,7 @@ public class LogfileExtractor {
             FilterContext filterContext = createFilterContext(filterList, ignoreList, startId, endId);
             return getFilteredContent(logfile, filterContext);
         } catch (IllegalArgumentException ex) {
-            return ex.getMessage();
+            return "\n" + ex.getMessage() +"\n";
         }
     }
 
@@ -54,7 +58,7 @@ public class LogfileExtractor {
         StringBuffer sb = new StringBuffer();
         BufferedReader br = null;
         FileReader fr = null;
-        boolean startIdFound = false;
+        boolean startIdFound = filterContext.getStartId() == null;
         boolean endIdFound = false;
 
         String logDir = System.getProperty("user.dir") + "/../standalone/log/";
@@ -67,10 +71,10 @@ public class LogfileExtractor {
         br = new BufferedReader(new FileReader(fileNameAbsPath));
 
         while ((sCurrentLine = br.readLine()) != null) {
-            if (sCurrentLine.contains(filterContext.getStartId())) {
+            if (filterContext.getStartId() !=null && sCurrentLine.contains(filterContext.getStartId())) {
                 startIdFound = true;
             }
-            if (sCurrentLine.contains(filterContext.getEndId())) {
+            if (filterContext.getEndId() != null && sCurrentLine.contains(filterContext.getEndId())) {
                 endIdFound = true;
             }
             if(startIdFound) {
@@ -106,9 +110,16 @@ public class LogfileExtractor {
         filterContext.setEndId(endId);
         filterContext.setStartId(startId);
 
-        if (filterContext.getFilterList().size() > 0 && filterContext.getIgnoreList().size() > 0) {
+        if ( getFilterSize(filterContext.getFilterList()) > 0 && getFilterSize(filterContext.getIgnoreList())> 0) {
             throw new IllegalArgumentException("Filter and Ignore Parameter not possible");
         }
+        if ( getFilterSize(filterContext.getFilterList()) == 0
+                && getFilterSize(filterContext.getIgnoreList()) == 0
+                && startId == null
+                && endId==null) {
+            throw new IllegalArgumentException("Neither filterList nor patternList nor startId nor endId are set");
+        }
+
 
         return filterContext;
     }
@@ -121,18 +132,25 @@ public class LogfileExtractor {
             return line + "\n";
         }
 
-        if ( (filterContext.getFilterList().size() > 0) && containsFilter) {
+        if ( ( getFilterSize(filterContext.getFilterList()) > 0) && containsFilter) {
                 return line + "\n";
         }
-        if ( (filterContext.getIgnoreList().size() > 0) && !containsIgnore) {
+        if ( ( getFilterSize(filterContext.getIgnoreList()) > 0) && !containsIgnore) {
                 return line + "\n";
         }
 
         return "";
     }
 
+    int getFilterSize(List<String> stringList) {
+        return stringList == null ? 0 : stringList.size();
+    }
+
     boolean noFilterSet(FilterContext filterContext){
-        return filterContext.getFilterList().size() == 0 &&
-                filterContext.getIgnoreList().size() == 0;
+
+        int sizeFilter = filterContext.getFilterList() == null ? 0 : filterContext.getFilterList().size();
+        int sizeIgnore = filterContext.getIgnoreList() == null ? 0 : filterContext.getFilterList().size();
+
+        return sizeFilter == 0 && sizeIgnore == 0;
     }
 }
