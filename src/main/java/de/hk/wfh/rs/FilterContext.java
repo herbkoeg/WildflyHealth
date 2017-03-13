@@ -16,6 +16,8 @@ public class FilterContext {
         return new ArrayList<String>();
     }
 
+
+
     public void setFilterList(List<String> filterList) {
         this.filterList = filterList;
     }
